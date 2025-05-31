@@ -1,0 +1,21 @@
+---
+
+- name: Allow incoming SSH (OpenSSH)
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Set default policy to deny incoming traffic
+  ufw:
+    direction: incoming
+    policy: deny
+
+- name: Check if UFW is enabled
+  command: ufw status
+  register: ufw_status
+  changed_when: false
+
+- name: Enable UFW if not already enabled
+  shell: echo y | ufw enable
+  when: "'inactive' in ufw_status.stdout"
+  notify: reload ufw

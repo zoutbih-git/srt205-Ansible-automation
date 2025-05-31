@@ -1,0 +1,32 @@
+# --- This is the main Playbook for The project, Created by Zakariya Outbih, Zakariya Farah, Ahmed Kawsara and Mia Habib --- #
+
+---
+- name: Main Project Playbook
+  hosts: all
+  tasks:
+     # check connectivity to all hosts
+    - name: This task runs on all hosts
+      debug:
+        msg: "This runs on all hosts"
+
+
+
+- name: Apply task only to windows_server
+  hosts: windows_server  # This task only affects the win_node01 host
+  roles:
+    - cis_windows
+    - audit_compliance 
+
+- name: Apply tasks to amazon server
+  hosts: amazon_ec2 
+  become: yes
+  roles:
+    - cis_amazon
+    - audit_compliance
+
+
+- name: Apply tasks to ubuntu server
+  hosts: db_servers
+  become: yes
+  roles:
+     - cis_ubuntu

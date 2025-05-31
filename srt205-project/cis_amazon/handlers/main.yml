@@ -1,0 +1,11 @@
+# handlers file for cis_amazon
+---
+- name: Restart yum services (if applicable)
+  ansible.builtin.debug:
+    msg: "Placeholder: No services to restart for dnf."
+
+- name: Restart sshd
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+

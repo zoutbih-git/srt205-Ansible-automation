@@ -1,0 +1,83 @@
+# This is the main Template for windows_compliance
+
+{% if password_history.stdout | int >= 24 %}
+    {% set password_history_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set password_history_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{% if max_password_age.stdout | int <= 60 %}
+    {% set max_password_age_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set max_password_age_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{% if lockout_threshold.stdout | int > 0 and lockout_threshold.stdout | int <= 5 %}
+    {% set lockout_threshold_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set lockout_threshold_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{% if reset_lockout_value.stdout | int >= 15 %}
+    {% set lockout_timer_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set lockout_timer_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{% if guest_account_status.stdout | trim == 'Disabled' %}
+    {% set guest_account_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set guest_account_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{% if administrator_account_status.stdout | trim == 'Disabled' %}
+    {% set administrator_account_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set administrator_account_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{% if last_username_display_status.stdout | trim == 'Enabled' %}
+    {% set last_username_display_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set last_username_display_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# Determine machine inactivity compliance and display value #}
+{% set inactivity_raw = machine_inactivity_limit_status.stdout | trim %}
+{% if inactivity_raw | int >= 0 and inactivity_raw | int <= 999 %}
+  {% set machine_inactivity_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set machine_inactivity_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# For display purposes: show "Not defined" if value is -1 #}
+{% if inactivity_raw == "-1" %}
+  {% set inactivity_display_value = "Not defined" %}
+{% else %}
+  {% set inactivity_display_value = inactivity_raw %}
+{% endif %}
+
+{% if private_firewall_status.stdout | trim == 'On' %}
+    {% set private_firewall_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set private_firewall_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{% if inbound_connections_status.stdout | trim == 'Block' %}
+    {% set private_firewall_inbound_result = 'COMPLIANT ✅' %}
+{% else %}
+    {% set private_firewall_inbound_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+| CIS Benchmark No. | Message | Value  | Excpected Value | Result         |
+|-------------------|---------|--------|-----------------|----------------|
+| 1.1.1 | Enforce Password History | {{ password_history.stdout | trim }} | 24 or more | {{ password_history_result }} |
+| 1.1.2 | Set Maximum Password Age | {{ max_password_age.stdout | trim }} | 60 or less | {{ max_password_age_result }} |
+| 1.2.2 | Account Lockout Threshold  | {{ lockout_threshold.stdout | trim }} | 1-5 | {{ lockout_threshold_result }} |
+| 1.2.3 | Account Lockout Counter | {{ reset_lockout_value.stdout | trim }} | 15 or more | {{ lockout_timer_result }} |
+| 2.3.1.2 | Guest Account Status | {{ guest_account_status.stdout | trim }} | Disabled | {{ guest_account_result }} |
+| 2.3.1.3 | Administrator Account Status | {{ administrator_account_status.stdout | trim }} | Disabled | {{ administrator_account_result }} |
+| 2.3.7.1 | Interactive logon: Do not display last user name | {{ last_username_display_status.stdout | trim }} | Enabled | {{ last_username_display_result }} |
+| 2.3.7.3 | Machine Inactivity Limit | {{ inactivity_display_value }} | 900 or fewer seconds | {{ machine_inactivity_result }} |
+| 9.2.1 | Windows Firewall: Private: Firewall state | {{ private_firewall_status.stdout | trim }} | On (recommended) | {{ private_firewall_result }} |
+| 9.2.2 | Windows Firewall: Private: Inbound connections | {{ inbound_connections_status.stdout | trim }} | Block | {{ private_firewall_inbound_result }} |

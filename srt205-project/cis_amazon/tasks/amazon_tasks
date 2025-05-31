@@ -1,0 +1,91 @@
+- name: "1.2.2 | Ensure gpgcheck is globally activated (Amazon Linux 2023)"
+  ansible.builtin.replace:
+    path: /etc/dnf/dnf.conf
+    regexp: '^gpgcheck=.*'
+    replace: 'gpgcheck=1'
+  notify: Restart yum services (if applicable)
+
+- name: "1.4.1 | Ensure ASLR is enabled"
+  ansible.builtin.sysctl:
+    name: kernel.randomize_va_space
+    value: "2"
+    state: present
+    sysctl_set: yes
+    reload: yes
+  register: aslr_result
+
+- name: "1.4.1 | Display ASLR result"
+  ansible.builtin.debug:
+    var: aslr_result
+
+- name: "4.2.19 | Ensure SSH PermitEmptyPasswords is disabled"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitEmptyPasswords\s+.*'
+    line: 'PermitEmptyPasswords no'
+    state: present
+    create: yes
+  notify: Restart sshd
+
+- name: "4.2.20 | Ensure SSH root login is disabled"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin\s+.*'
+    line: 'PermitRootLogin no'
+    state: present
+    create: yes
+  notify: Restart sshd
+
+- name: "4.2.7 | Set SSH ClientAliveInterval to 300"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?ClientAliveInterval\s+.*'
+    line: 'ClientAliveInterval 300'
+    state: present
+    create: yes
+  notify: Restart sshd
+
+- name: "4.2.7 | Set SSH ClientAliveCountMax to 0"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?ClientAliveCountMax\s+.*'
+    line: 'ClientAliveCountMax 0'
+    state: present
+    create: yes
+  notify: Restart sshd
+
+- name: "3.3.1 | Ensure IP forwarding is disabled"
+  ansible.builtin.sysctl:
+    name: net.ipv4.ip_forward
+    value: "0"
+    state: present
+    sysctl_set: yes
+    reload: yes
+  register: ip_forward_result
+
+- name: "3.3.1 | Display IP forwarding result"
+  ansible.builtin.debug:
+    var: ip_forward_result
+
+- name: "3.3.5 | Disable ICMP redirects for all interfaces"
+  ansible.builtin.sysctl:
+    name: net.ipv4.conf.all.accept_redirects
+    value: "0"
+    state: present
+    sysctl_set: yes
+    reload: yes
+
+- name: "3.3.5 | Disable ICMP redirects for default interface"
+  ansible.builtin.sysctl:
+    name: net.ipv4.conf.default.accept_redirects
+    value: "0"
+    state: present
+    sysctl_set: yes
+    reload: yes
+
+- name: "5.2.1.4 | Ensure auditd service is enabled and running"
+  ansible.builtin.service:
+    name: auditd
+    state: started
+    enabled: yes
+

@@ -1,0 +1,81 @@
+#This is the main playbook for Amazon compliance
+---
+# 1.2.2 - Ensure gpgcheck is enabled in DNF config
+- name: Check if gpgcheck is enabled
+  command: grep "^gpgcheck=1" /etc/dnf/dnf.conf
+  register: gpgcheck_value
+  failed_when: false  # Do not fail the play if the line is missing
+
+# 1.4.1 - Ensure ASLR is enabled (kernel randomize_va_space = 2)
+- name: Check ASLR status
+  command: sysctl kernel.randomize_va_space
+  register: aslr_value
+
+# 4.2.19 - Ensure SSH PermitEmptyPasswords is disabled
+- name: Check SSH empty password setting
+  command: grep -i "^PermitEmptyPasswords" /etc/ssh/sshd_config
+  register: ssh_empty_pw
+  failed_when: false  # Don't fail if not found, just check output
+
+# 4.2.20 - Ensure SSH root login is disabled
+- name: Check SSH root login setting
+  command: grep -i "^PermitRootLogin" /etc/ssh/sshd_config
+  register: ssh_root_login
+  failed_when: false
+
+# 4.2.7 - Ensure SSH ClientAliveInterval is set to 300
+- name: Check SSH ClientAliveInterval
+  command: grep -i "^ClientAliveInterval" /etc/ssh/sshd_config
+  register: client_alive_interval
+  failed_when: false
+
+# 4.2.7 - Ensure SSH ClientAliveCountMax is set to 0
+- name: Check SSH ClientAliveCountMax
+  command: grep -i "^ClientAliveCountMax" /etc/ssh/sshd_config
+  register: client_alive_count
+  failed_when: false
+
+# 3.3.1 - Ensure IP forwarding is disabled
+- name: Check IP forwarding
+  command: sysctl net.ipv4.ip_forward
+  register: ip_forward
+
+# 3.3.5 - Ensure ICMP redirects are disabled for all interfaces
+- name: Check ICMP redirects - all
+  command: sysctl net.ipv4.conf.all.accept_redirects
+  register: icmp_all_redirects
+
+# 3.3.5 - Ensure ICMP redirects are disabled for default interface
+- name: Check ICMP redirects - default
+  command: sysctl net.ipv4.conf.default.accept_redirects
+  register: icmp_default_redirects
+
+# 5.2.1.4 - Ensure auditd service is enabled and running
+- name: Check if auditd is enabled
+  command: systemctl is-enabled auditd
+  register: auditd_enabled
+  failed_when: false
+
+- name: Check if auditd is active
+  command: systemctl is-active auditd
+  register: auditd_active
+  failed_when: false
+
+# Render report from the audit results using Jinja2 template
+- name: Render Amazon compliance report
+  template:
+    src: amazon_compliance.md.j2
+    dest: /tmp/amazon_compliance.md
+
+# Copy the rendered compliance report from the remote server to the control node
+- name: Fetch Amazon compliance report
+  fetch:
+    src: /tmp/amazon_compliance.md
+    dest: ~/repo/srt205-project/Reports/amazon_compliance.md
+    flat: yes  # Save file without creating nested folders
+
+# Log the local location of the compliance report
+- name: Print report location
+  debug:
+    msg: "Amazon compliance report fetched to ~/repo/srt205-project/amazon_compliance.md"
+

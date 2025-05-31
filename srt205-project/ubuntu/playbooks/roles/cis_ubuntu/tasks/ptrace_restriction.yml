@@ -1,0 +1,8 @@
+---
+- name: Restrict ptrace access via sysctl runtime
+  sysctl:
+    name: kernel.yama.ptrace_scope
+    value: 1
+    state: present
+    sysctl_set: yes
+    reload: yes

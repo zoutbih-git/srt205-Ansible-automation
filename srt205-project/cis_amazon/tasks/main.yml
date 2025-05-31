@@ -1,0 +1,5 @@
+# tasks file for cis_amazon
+
+- name: Apply CIS amazon Configuration 
+  include_tasks: amazon_tasks 
+

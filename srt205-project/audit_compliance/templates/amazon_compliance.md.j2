@@ -1,0 +1,79 @@
+# This is the main template for Amazon linux compliance
+
+{# ---- 1.2.2 | Enable gpgcheck ---- #}
+{% if gpgcheck_value.stdout is search("gpgcheck=1") %}
+  {% set gpgcheck_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set gpgcheck_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# ---- 1.4.1 | Enable ASLR ---- #}
+{% if aslr_value.stdout | trim == 'kernel.randomize_va_space = 2' %}
+  {% set aslr_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set aslr_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# ---- 4.2.19 | Disable empty SSH passwords ---- #}
+{% if ssh_empty_pw.stdout is match("(?i)^PermitEmptyPasswords\\s+no") %}
+  {% set empty_pw_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set empty_pw_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# ---- 4.2.20 | Disable root SSH login ---- #}
+{% if ssh_root_login.stdout is match("(?i)^PermitRootLogin\\s+no") %}
+  {% set root_login_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set root_login_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# ---- 4.2.7 | SSH Idle Timeout - ClientAliveInterval ---- #}
+{% if client_alive_interval.stdout.split()[1] | int == 300 %}
+  {% set alive_interval_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set alive_interval_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# ---- 4.2.7 | SSH Idle Timeout - ClientAliveCountMax ---- #}
+{% if client_alive_count.stdout | int == 0 %}
+  {% set alive_count_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set alive_count_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# ---- 3.3.1 | Disable IP forwarding ---- #}
+{% if ip_forward.stdout | trim == 'net.ipv4.ip_forward = 0' %}
+  {% set ip_forward_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set ip_forward_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# ---- 3.3.5 | Disable ICMP redirects ---- #}
+{% if icmp_all_redirects.stdout | trim == 'net.ipv4.conf.all.accept_redirects = 0'
+   and icmp_default_redirects.stdout | trim == 'net.ipv4.conf.default.accept_redirects = 0' %}
+  {% set icmp_redirects_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set icmp_redirects_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+{# ---- 5.2.1.4 | Ensure auditd is enabled and active ---- #}
+{% if auditd_enabled.stdout is search("enabled") and auditd_active.stdout is search("active") %}
+  {% set auditd_result = 'COMPLIANT ✅' %}
+{% else %}
+  {% set auditd_result = 'NON-COMPLIANT ❌' %}
+{% endif %}
+
+
+| CIS ID    | Message                                      | Value                            | Expected Value         | Result               |
+|-----------|----------------------------------------------|----------------------------------|-------------------------|----------------------|
+| 1.2.2     | Enable gpgcheck for package signing          | {{ gpgcheck_value.stdout | trim }} | gpgcheck=1              | {{ gpgcheck_result }}|
+| 1.4.1     | Enable ASLR                                  | {{ aslr_value.stdout | trim }}    | kernel.randomize_va_space = 2 | {{ aslr_result }} |
+| 4.2.19    | Disable empty SSH passwords                  | {{ ssh_empty_pw.stdout | trim }} | PermitEmptyPasswords no| {{ empty_pw_result }}|
+| 4.2.20    | Disable root SSH login                       | {{ ssh_root_login.stdout | trim }} | PermitRootLogin no     | {{ root_login_result }}|
+| 4.2.7     | Set ClientAliveInterval                      | {{ client_alive_interval.stdout | trim }} | 300            | {{ alive_interval_result }}|
+| 4.2.7     | Set ClientAliveCountMax                      | {{ client_alive_count.stdout | trim }} | 0               | {{ alive_count_result }}|
+| 3.3.1     | Disable IP forwarding                        | {{ ip_forward.stdout | trim }}    | net.ipv4.ip_forward = 0 | {{ ip_forward_result }}|
+| 3.3.5     | Disable ICMP redirects (all & default)       | all={{ icmp_all_redirects.stdout | trim }}, default={{ icmp_default_redirects.stdout | trim }} | 0 | {{ icmp_redirects_result }}|
+| 5.2.1.4   | Ensure auditd service is enabled and running | enabled={{ auditd_enabled.stdout | trim }}, active={{ auditd_active.stdout | trim }} | enabled & active | {{ auditd_result }} |
+

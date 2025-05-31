@@ -1,0 +1,14 @@
+---
+# tasks file for audit_compliance
+
+# tasks file for audit_compliance
+
+- name: Apply Amazon Linux CIS Configuration and Compliance Audit
+  include_tasks: amazon_compliance
+  when: "'amazon_ec2' in group_names"
+
+- name: Apply CIS Windows Configuration and Compliance Audit
+  include_tasks: windows_compliance
+  when: "'windows_server' in group_names"
+
+

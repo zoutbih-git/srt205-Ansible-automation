@@ -1,0 +1,14 @@
+---
+- name: Ensure auditd is installed
+  become: yes
+  apt:
+    name: auditd
+    state: present
+    update_cache: yes
+
+- name: Enable and start auditd service
+  become: yes
+  service:
+    name: auditd
+    enabled: yes
+    state: started

@@ -1,0 +1,13 @@
+---
+- name: Create /etc/cron.allow file with only root user
+  copy:
+    dest: /etc/cron.allow
+    content: "root\n"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Ensure /etc/cron.deny does not exist
+  file:
+    path: /etc/cron.deny
+    state: absent

@@ -1,0 +1,156 @@
+#This is the playbook for windows_compliance
+---
+# 1. Audit Password History 
+- name: Export current security policy to file
+  win_command: secedit /export /cfg C:\Windows\Temp\secpol.cfg
+
+- name: Extract PasswordHistorySize value
+  win_shell: |
+    (Get-Content C:\Windows\Temp\secpol.cfg | Select-String 'PasswordHistorySize').ToString().Split('=')[1].Trim()
+  register: password_history
+
+- name: Show PasswordHistorySize value
+  debug:
+    msg: "Password history size is {{ password_history.stdout | trim}}"
+
+
+# 2. Audit Maximum Password Age
+- name: Extract MaximumPasswordAge value
+  win_shell: |
+    (Get-Content C:\Windows\Temp\secpol.cfg | Select-String 'MaximumPasswordAge').Line.Split('=')[1].Trim()
+  register: max_password_age
+
+- name: Show MaximumPasswordAge value
+  debug:
+    msg: "Maximum Password Age is {{ max_password_age.stdout | trim }}"
+
+# 3. Audit the current account lockout threshold
+- name: Extract Account Lockout Threshold value
+  win_shell: |
+     (Get-Content C:\Windows\Temp\secpol.cfg | Select-String 'LockoutBadCount').ToString().Split('=')[1].Trim()
+  register: lockout_threshold
+
+- name: Show Account Lockout Threshold value
+  debug:
+    msg: "Account Lockout Threshold is {{ lockout_threshold.stdout | trim }}"
+
+
+# 4. Audit Reset account lockout counter
+# 4. Audit Reset account lockout counter
+- name: Extract Reset account lockout counter after value
+  win_shell: |
+    $resetLockout = Get-Content C:\Windows\Temp\secpol.cfg | Select-String 'ResetLockoutCount'
+    if ($resetLockout) {
+      $resetLockout.ToString().Split('=')[1].Trim()
+    } else {
+      return "0"  # Default to 0 if not configured
+    }
+  register: reset_lockout_value
+  ignore_errors: yes
+
+- name: Show Reset account lockout counter after value (if configured or defaulted)
+  debug:
+    msg: "Reset account lockout counter after is {{ reset_lockout_value.stdout | trim }} minutes"
+
+# 5. Audit Guest Account Status
+- name: Check if Guest account is disabled
+  win_shell: |
+    $account = Get-LocalUser -Name 'Guest'
+    if ($account.Enabled -eq $false) {
+      Write-Output "Disabled"
+    } else {
+      Write-Output "Enabled"
+    }
+  register: guest_account_status
+  failed_when: false
+
+- name: Show Guest account status
+  debug:
+    msg: "Guest account is {{ guest_account_status.stdout | trim }}"
+
+# 6. Audit Built in Administrator account status 
+- name: Check if Administrator account is disabled
+  win_shell: |
+    $account = Get-LocalUser -Name 'Administrator'
+    if ($account.Enabled -eq $false) {
+      Write-Output "Disabled"
+    } else {
+      Write-Output "Enabled"
+    }
+  register: administrator_account_status
+  failed_when: false
+
+- name: Show Administrator account status
+  debug:
+    msg: "Administrator account is {{ administrator_account_status.stdout | trim }}"
+
+# 7. Audit Interactive logon: Do not display last user name
+- name: Check if 'Do not display last user name' is enabled
+  win_shell: |
+    $val = (Get-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DontDisplayLastUserName" -ErrorAction SilentlyContinue).DontDisplayLastUserName
+    if ($val -eq 1) {
+      Write-Output "Enabled"
+    } else {
+      Write-Output "Disabled"
+    }
+  register: last_username_display_status
+  failed_when: false
+
+- name: Show 'Do not display last user name' status
+  debug:
+    msg: "Interactive logon: Do not display last user name is {{ last_username_display_status.stdout | trim }}"
+
+# 8. Check if Machine Inactivity Limit is set to 900 or fewer seconds
+- name: Check if 'Interactive logon Machine inactivity limit' is set
+  win_shell: |
+    $val = (Get-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "InactivityTimeoutSecs" -ErrorAction SilentlyContinue).InactivityTimeoutSecs
+    if ($null -eq $val) {
+      $val = -1  # Set to -1 if the value is undefined
+    }
+    Write-Output $val
+  register: machine_inactivity_limit_status
+  failed_when: false
+
+- name: Show Machine Inactivity Limit status
+  debug:
+    msg: "'Interactive logon: Machine inactivity limit' is {{ machine_inactivity_limit_status.stdout | trim }}"
+
+# 9. Check if windows firewall private is set to "on"
+- name: Check if Windows Firewall is enabled for Private profile
+  win_shell: |
+    $profile = Get-NetFirewallProfile -Profile Private
+    if ($profile.Enabled -eq $true) {
+      Write-Output "On"
+    } else {
+      Write-Output "Off"
+    }
+  register: private_firewall_status
+  failed_when: false
+
+- name: Show Private Firewall Status
+  debug:
+    msg: "Private Firewall is {{ private_firewall_status.stdout | trim }}"
+
+# 10. Check if windows firewall private inbound connections is set to block
+- name: Check Windows Firewall Private Inbound connections rule
+  win_shell: |
+    Get-NetFirewallProfile -Profile Private | Select-Object -ExpandProperty DefaultInboundAction
+  register: inbound_connections_status
+  ignore_errors: yes
+
+- name: Output the result of Inbound Connections status
+  debug:
+    msg: "Inbound Connections Rule: {{ inbound_connections_status.stdout | trim }}"
+
+
+#create the Jinja2 template and fetch it from windows
+- name: Generate compliance report 
+  template:
+    src: templates/windows_compliance.md.j2
+    dest: C:\Windows\Temp\windows_compliance.txt
+
+- name: Fetch the generated compliance report
+  fetch:
+    src: C:\Windows\Temp\windows_compliance.txt
+    dest: ~/repo/srt205-project/Reports/windows_compliance.md
+    flat: yes

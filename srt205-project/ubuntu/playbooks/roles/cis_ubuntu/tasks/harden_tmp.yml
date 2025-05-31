@@ -1,0 +1,17 @@
+---
+- name: Bind mount /tmp with noexec, nosuid
+  become: yes
+  mount:
+    path: /tmp
+    src: /tmp
+    fstype: none
+    opts: bind,noexec,nosuid
+    state: mounted
+
+- name: Ensure /tmp mount is persistent in /etc/fstab
+  become: yes
+  lineinfile:
+    path: /etc/fstab
+    regexp: '^/tmp\s'
+    line: '/tmp /tmp none bind,noexec,nosuid 0 0'
+    state: present
