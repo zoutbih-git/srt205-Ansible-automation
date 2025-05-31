@@ -1,0 +1,75 @@
+---
+- name: Configure web server on midterm_node01
+  hosts: webservers
+  become: true
+  vars_files:
+    - ~/repo/srt205-midterm-retry/inventory/group_vars/all.yml  # path to web_root variable
+
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Nginx service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Create web root directory
+      file:
+        path: "{{ web_root }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - block:
+        - name: Deploy web application files
+          copy:
+            src: "{{ item }}"
+            dest: "{{ web_root }}/"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: '0644'
+          loop:
+            - ../files/index.html
+            - ../files/script.js
+            - ../files/style.css
+          notify: Restart Nginx
+
+        - name: Check if index.html exists
+          stat:
+            path: "{{ web_root }}/index.html"
+          register: check_index_result
+
+        - name: Replace placeholders in index.html
+          replace:
+            path: "{{ web_root }}/index.html"
+            regexp: "{{ item.regexp }}"
+            replace: "{{ item.replace }}"
+          loop:
+            - { regexp: 'OS_PLACEHOLDER', replace: "{{ ansible_distribution }}" }
+            - { regexp: 'DATETIME_PLACEHOLDER', replace: "{{ ansible_facts.date_time.iso8601 }}" }
+            - { regexp: 'NAME_PLACEHOLDER', replace: "zoutbih_seneca" } 
+          when: check_index_result.stat.exists
+          notify: Restart Nginx
+
+
+
+    - name: Update NGINX default configuration to serve {{ web_root }}
+      replace:
+        path: /etc/nginx/sites-available/default
+        regexp: 'root /var/www/html;'
+        replace: 'root {{ web_root }};'  # Replacing with web_root variable which is /var/www/midterm
+
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
+
