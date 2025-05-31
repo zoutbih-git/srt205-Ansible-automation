@@ -1,0 +1,34 @@
+---
+- name: Declaring variables using multiple methods
+  hosts: localhost, managed_node01
+
+  # Method 1: Define a variable using the vars section (this will apply to both localhost and managed_node01)
+  vars:
+    var_from_vars_section: "Defined in vars section"
+  
+  tasks:
+    - name: Display the variable defined in vars section
+      debug:
+        msg: "var_from_vars_section: {{ var_from_vars_section }}"
+
+    # Method 2: Dynamically define a variable using set_fact
+    - name: Set the variable using set_fact
+      set_fact:
+        var_from_set_fact: "Defined using set_fact"
+    
+    - name: Display the variable after set_fact
+      debug:
+        msg: "var_from_set_fact: {{ var_from_set_fact }}"
+
+    # Method 3: Define a list of variables directly in a task
+    - name: Define a list of variables and display one from the list
+      set_fact:
+        var_list:
+          - var1: "Value for var1"
+          - var2: "Value for var2"
+          - var3: "Value for var3"
+    
+    - name: Display the second variable from the list
+      debug:
+        msg: "var_list[1].var2: {{ var_list[1].var2 }}"
+

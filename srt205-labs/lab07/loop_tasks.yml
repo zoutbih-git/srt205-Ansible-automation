@@ -1,0 +1,23 @@
+---
+- name: looping playbook example
+  hosts: managed_node01
+  become: yes
+  tasks:
+
+    - name: install multiple packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - git
+        - curl
+        - vim
+
+    - name: create multiple files
+      copy:
+        content: "This is file {{ item }}"
+        dest: "/tmp/{{ item }}.txt" #this will create files alpha.txt, beta.txt and gamma.txt
+      loop:
+        - alpha
+        - beta
+        - gamma

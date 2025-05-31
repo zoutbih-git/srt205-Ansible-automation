@@ -1,0 +1,25 @@
+--- 
+- name: Deploy mysql database server
+  hosts: db_servers
+  become: yes
+  roles:
+
+  pre_tasks:
+    - name: Update and upgrade all packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+  roles:
+    - mysql_role
+
+  post_tasks:
+    - name: Query the most powerful Avenger
+      community.mysql.mysql_query:
+        login_db: avengers_db
+        query: "SELECT * FROM characters ORDER BY power_level DESC LIMIT 1;"
+      register: query_result
+
+    - name: Display the most powerful Avenger
+      debug:
+        var: query_result.query_result

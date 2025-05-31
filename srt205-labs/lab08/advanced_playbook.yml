@@ -1,0 +1,49 @@
+---
+- name: Create user, assign admin rights, and deploy script on Windows
+  hosts: all
+  tasks:
+    # 3.1 Create a local user account
+    - name: Create a local user account
+      win_user: #module for creating a new user account
+        name: newuser #name of the new user
+        password: "P@ssw0rd" #user password
+        state: present #makes sure the user exists if it does not a user is created
+        groups: Users #default group
+
+    # 3.2 Grant the user administrator privileges
+    - name: Grant user administrator privileges
+      win_user:
+        name: newuser # name of user
+        groups:
+          - Administrators #adds the user to the Administrators group. giving the user admin privileges
+        state: present
+
+    # 3.3 Create a folder for the script if it doesn't exist
+    - name: Create a folder for the script if it doesn't exist
+      win_file: #module for creating files
+        path: C:\scripts #path of file
+        state: directory #ensure the directory exists if not it creates it
+
+    # 3.4 Deploy the PowerShell script to monitor disk usage
+    - name: Deploy PowerShell script to monitor disk usage
+      win_copy: #module used for copying files
+        content: | #content of the file listed line by line
+          # monitor_disk.ps1
+          $DiskUsage = Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{Name="UsedGB";Expression={[math]::Round($_.Used/1GB,2)}}, @{Name="FreeGB";Expression={[math]::Round($_.Free/1GB,2)}}
+          $DiskUsage | Out-File -FilePath "C:\\scripts\\disk_usage_report.txt" -Append
+          Write-Output "Disk usage report updated."
+        dest: C:\scripts\monitor_disk.ps1
+
+    # 3.5 Schedule PowerShell script to run daily using Task Scheduler
+    - name: Schedule PowerShell script using Task Scheduler
+      win_scheduled_task: #module used to create a task in windows
+        name: MonitorDiskUsage
+        actions: #defines what the task does
+          - path: powershell.exe #task will use powershell to execute file below
+            arguments: -File C:\scripts\monitor_disk.ps1 #path to the file
+        trigger: #when will the task run
+          - at: '12:00' #runs daily at 12:00 PM
+            frequency: daily #how often
+        logon_type: service_account #ensure that the task runs wether or not the user is logged on
+        state: present #ensures task exists if not a new task is created
+        username: SYSTEM #user used for running the task, it does not require a user to be logged on since it is a built in system account, user used for background tasks

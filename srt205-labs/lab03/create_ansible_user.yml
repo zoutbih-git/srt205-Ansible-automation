@@ -1,0 +1,9 @@
+- name: Create ansible_user on ManagedNode01
+  hosts: web_servers
+  become: yes
+  tasks:
+    - name: Create the ansible_user
+      ansible.builtin.user:
+        name: ansible_user
+        shell: /bin/bash
+        state: present

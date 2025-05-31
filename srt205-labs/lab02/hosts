@@ -1,0 +1,5 @@
+[local]
+localhost ansible_connection=local
+
+[remote]
+managed_node01 ansible_host=192.168.0.2 ansible_user=managenode01

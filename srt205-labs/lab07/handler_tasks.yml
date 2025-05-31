@@ -1,0 +1,18 @@
+---
+- name: Playbook with Handlers example
+  hosts: managed_node01  
+  become: yes  
+  tasks:
+
+    - name: Modify content of the index.html
+      copy:
+        content: "<html><body><h1>Welcome to My Website</h1></body></html>"
+        dest: /var/www/html/index.html
+      notify:
+        - Restart NGINX
+
+  handlers:
+    - name: Restart NGINX
+      service:
+        name: nginx
+        state: restarted

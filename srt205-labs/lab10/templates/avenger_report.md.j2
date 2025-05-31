@@ -1,0 +1,7 @@
+## Avengers Power Report
+
+| Name          | Alias (UPPERCASE) | Power Level | Specialty          |
+|---------------|-------------------|-------------|--------------------|
+{% for avenger in avenger_data.query_result[0] %}
+| {{ avenger.name }} | {{ avenger.alias | upper }} | {{ avenger.power_level }} | {{ avenger.specialty }} |
+{% endfor %}

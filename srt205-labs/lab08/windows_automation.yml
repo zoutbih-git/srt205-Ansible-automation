@@ -1,0 +1,19 @@
+---
+- name: Automate Common Tasks on Windows
+  hosts: all
+  tasks:
+    - name: Start Spooler service
+      win_service:
+        name: Spooler
+        state: started
+
+    - name: Install Google Chrome using Chocolatey
+      win_chocolatey:
+        name: googlechrome
+        state: present
+        ignore_checksums: yes
+
+    - name: Create a folder named c:\temp_dir
+      win_file:
+        path: C:\temp_dir
+        state: directory

@@ -1,0 +1,9 @@
+---
+- name: Install software on all servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install git
+      apt:
+        name: git
+        state: present

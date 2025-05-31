@@ -1,0 +1,33 @@
+---
+# tasks file for playbooks/roles/mysql_role
+
+- name: install mysql-server
+  package:
+    name: mysql-server #name of the package
+    state: present
+
+
+- name: install python3-mysqldb #needed for importing the sql database and using the community.mysql.mysql_db: module
+  apt:
+    name: python3-mysqldb
+    state: present
+
+- name: ensure mysql-server is running
+  service:
+    name: mysql #name of the service
+    state: started
+    enabled: yes
+
+- name: copy the sql database
+  copy:
+    src: sql_init.sql
+    dest: /tmp/sql_init.sql
+
+- name: Import the sql database
+  community.mysql.mysql_db:
+    name: avengers_db
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock #uses this socket to connect to mysql
+    state: import #runs the sql_init.sql file on the server
+    target: /tmp/sql_init.sql
+

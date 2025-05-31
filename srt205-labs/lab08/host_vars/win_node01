@@ -1,0 +1,5 @@
+ansible_host: 192.168.0.4 # ip of the machine
+ansible_user: Administrator # name of the user on the machine
+ansible_password: "P@ssw0rd" # password for the user above
+ansible_connection: winrm #use winrm instead of ssh
+ansible_winrm_server_cert_validation: ignore #prevents connection errors and ignores certificates

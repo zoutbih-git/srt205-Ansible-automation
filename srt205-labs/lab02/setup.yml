@@ -1,0 +1,10 @@
+---
+- name: Test Ansible Playbook
+  hosts: local
+
+  become: yes
+  tasks:
+  - name: Install curl
+    apt:
+      name: curl
+      state: present

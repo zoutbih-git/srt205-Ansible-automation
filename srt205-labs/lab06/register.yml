@@ -1,0 +1,11 @@
+---
+- name: Capture and display output of df -h
+  hosts: all
+  tasks:
+    - name: Run df -h command to check disk usage
+      command: df -h
+      register: df_output  
+
+    - name: Display the output of df -h
+      debug:
+        msg: "{{ df_output.stdout }}"

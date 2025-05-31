@@ -1,0 +1,11 @@
+- name: Allow ansible_user passwordless sudo privileges
+  hosts: web_servers
+  become: yes
+  tasks:
+    - name: Update sudoers file for ansible_user
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^ansible_user '
+        line: 'ansible_user ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'

@@ -1,0 +1,36 @@
+---
+- name: Demonstrate Variables in Ansible
+  hosts: all
+  become: yes
+
+  vars:
+    web_root: /var/www/ansible-lab
+    welcome_message: "Welcome to Ansible Variables Lab!"
+
+  tasks:
+    - name: Create web root directory
+      file:
+        path: "{{ web_root }}"
+        state: directory
+        mode: "0755"
+
+    - name: Create index.html with a welcome message
+      copy:
+        content: "<h1>{{ welcome_message }}</h1>"
+        dest: "{{ web_root }}/index.html"
+
+    - name: Display the web root path
+      debug:
+        msg: "Web root directory is set to {{ web_root }}"
+
+    - name: Display application name from group_vars
+      debug:
+        msg: "Application Name: {{ app_name }}"
+
+    - name: Display server role from host_vars
+      debug:
+        msg: "Server Role: {{ server_role }}"
+
+    - name: Display OS information
+      debug:
+        msg: "Operating System: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"

@@ -1,0 +1,21 @@
+---
+- name: Generate full system report using Jinja2
+  hosts: db_servers
+  gather_facts: true
+  become: yes
+  tasks:
+    - name: Get top 5 memory-consuming processes
+      shell: ps -eo pid,comm,%mem --sort=-%mem | head -n 6
+      register: top_processes
+
+    - name: Generate system report using Jinja2 template
+      template:
+        src: ../templates/report_template.md.j2
+        dest: /tmp/system_report.md
+
+    - name: fetch the generated template to control node
+      fetch:
+        src: /tmp/system_report.md
+        dest: ~/repo/srt205-labs/lab10/reports/system_report.md
+        flat: yes
+

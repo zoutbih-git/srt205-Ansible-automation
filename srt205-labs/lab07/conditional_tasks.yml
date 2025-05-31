@@ -1,0 +1,22 @@
+---
+- name: conditional loop example
+  hosts: managed_node01
+  become: yes
+  tasks:
+
+    - name: install apache2
+      apt:
+        name: apache2
+        state: present     #if already installed do nothing
+      when: ansible_os_family == "Debian" #similar to python if statement, checks if os family is debian
+
+    - name: Gather package facts 
+      package_facts: #module used for gathering information about installed packages, needed otherwise the below task will throw an error
+
+
+    - name: Restart NGINX service
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
+      when: ( "nginx" in ansible_facts.packages )

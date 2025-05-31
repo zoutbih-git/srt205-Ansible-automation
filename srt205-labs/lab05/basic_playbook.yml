@@ -1,0 +1,42 @@
+---
+- name: Basic Playbook Example
+  hosts: managed_node01
+  become: yes
+
+  tasks:
+    - name: Ensure NGINX is installed
+      apt:
+        name: nginx
+        state: present
+    
+    - name: Create a directory for web content
+      file:
+        path: /var/www/ansible-lab
+        state: directory
+        mode: "0755"
+
+    - name: Copy an HTML file to the web directory
+      copy:
+        src: index.html
+        dest: /var/www/ansible-lab/index.html
+
+    - name: Update NGINX default configuration to serve /var/www/ansible-lab
+      replace:
+        path: /etc/nginx/sites-available/default
+        regexp: 'root /var/www/html;'
+        replace: 'root /var/www/ansible-lab;'
+
+    - name: Reload and enable NGINX service
+      service:
+        name: nginx
+        state: reloaded
+        enabled: yes
+    - name: Restart NGINX service
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
+    - name: Install htop
+      apt:
+        name: htop
+        state: present      

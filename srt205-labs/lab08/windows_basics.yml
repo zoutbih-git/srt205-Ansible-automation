@@ -1,0 +1,6 @@
+---
+- name: Basic Windows Automation
+  hosts: all
+  tasks:
+    - name: Check WinRM connectivity
+      win_ping:
