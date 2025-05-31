@@ -1,0 +1,76 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for db_deploy
+
+- name: Install required packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - mysql-server
+    - python3
+    - python3-pymysql
+
+- name: Ensure MySQL service is started and enabled
+  ansible.builtin.service:
+    name: mysql
+    state: started
+    enabled: true
+
+- name: Database setup block
+  block:
+    - name: Create MySQL database
+      community.mysql.mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: root
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Create MySQL user with privileges
+      community.mysql.mysql_user:
+        name: "{{ db_user }}"
+        priv: "{{ db_name }}.*:ALL"
+        password: "{{ db_password }}"
+        host: "%"
+        state: present
+        login_user: root
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Copy initial SQL script
+      ansible.builtin.copy:
+        src: sql_init.sql
+        dest: /tmp/sql_init.sql
+        mode: '0644'
+
+
+    - name: Import initial SQL data
+      community.mysql.mysql_db:
+        name: "{{ db_name }}"  # Database name to work with
+        state: import
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        target: /tmp/sql_init.sql
+
+    - name: Run SELECT query on characters
+      community.mysql.mysql_query:
+        login_db: "{{ db_name }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        query: 'SELECT * FROM characters;'
+      register: query_output
+
+    - name: Show query output
+      ansible.builtin.debug:
+        var: query_output.query_result
+
+  rescue:
+    - name: Show failure message
+      ansible.builtin.debug:
+        msg: "MySQL setup failed."
+
+  always:
+    - name: Clean up temporary SQL file
+      ansible.builtin.file:
+        path: /tmp/sql_init.sql
+        state: absent
+

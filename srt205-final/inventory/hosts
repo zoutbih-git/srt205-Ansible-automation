@@ -1,0 +1,6 @@
+[dbservers]
+dbserver01
+
+[webservers]
+webserver01
+

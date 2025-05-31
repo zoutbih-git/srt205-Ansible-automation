@@ -1,0 +1,3 @@
+ansible_host: 192.168.0.11
+ansible_user: managenodey
+ansible_ssh_private_key_file: ~/.ssh/final_exam

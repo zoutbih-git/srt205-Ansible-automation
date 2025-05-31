@@ -1,0 +1,12 @@
+---
+- name: Deploy database server
+  hosts: dbservers
+  become: true
+  roles:
+    - db_deploy
+
+- name: Deploy web server
+  hosts: webservers
+  become: true
+  roles:
+    - web_deploy

@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for db_deploy
+
+db_user: final_user
+db_name: lotr_db
+

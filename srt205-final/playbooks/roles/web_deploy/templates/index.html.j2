@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Middle-earth Legends - SRT205 Final Practical Test</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Middle-earth Legends</h1>
+    <p><strong>SRT205 Final Practical Test</strong></p>
+    <p>Deployed on {{ ansible_date_time.date }}</p>
+  </header>
+
+  <main class="card-container">
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-front" style="background-image: url('images/frodo.png');"></div>
+        <div class="card-back">
+          <h2>Frodo Baggins</h2>
+          <p>Race: Hobbit</p>
+          <p>Role: Ring-bearer</p>
+          <p>Origin: The Shire</p>
+          <p>Specialty: Resistance to the Ring</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-front" style="background-image: url('images/gandalf.png');"></div>
+        <div class="card-back">
+          <h2>Gandalf</h2>
+          <p>Race: Maia</p>
+          <p>Role: Wizard</p>
+          <p>Origin: Valinor</p>
+          <p>Specialty: Magic, Wisdom, Immortality</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-front" style="background-image: url('images/aragorn.png');"></div>
+        <div class="card-back">
+          <h2>Aragorn</h2>
+          <p>Race: Human</p>
+          <p>Role: Ranger</p>
+          <p>Origin: Rivendell</p>
+          <p>Specialty: Leadership, Healing</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; {{ ansible_date_time.year }} {{ web_user }}</p>
+  </footer>
+</body>
+</html>

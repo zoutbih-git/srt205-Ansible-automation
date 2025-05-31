@@ -1,0 +1,54 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for web_debloy
+
+- name: Install Nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: Ensure Nginx is started and enabled
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Create web root directory
+  ansible.builtin.file:
+    path: "{{ web_root }}/images"
+    state: directory
+    mode: '0755'
+    owner: "managenodey"
+    group: "managenodey"
+
+- name: Copy static web files (images and styles)
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ web_root }}/{{ item.dest }}"
+    mode: '0644'
+  loop:
+    - { src: images/aragorn.png, dest: images/aragorn.png }
+    - { src: images/frodo.png,   dest: images/frodo.png }
+    - { src: images/gandalf.png, dest: images/gandalf.png }
+    - { src: styles.css,         dest: styles.css }
+
+- name: Deploy index.html from Jinja2 template
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ web_root }}/index.html"
+    mode: '0644'
+
+- name: Configure Nginx with final.j2
+  ansible.builtin.template:
+    src: final.j2
+    dest: /etc/nginx/sites-available/final
+    mode: '0644'
+  notify: Restart Nginx
+
+- name: Enable Nginx site by creating symbolic link
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/final
+    dest: /etc/nginx/sites-enabled/final
+    state: link
+    force: true
+

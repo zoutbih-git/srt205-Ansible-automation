@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for web_debloy
+
+web_user: zoutbih_seneca
+web_root: /var/www/final
+
