@@ -1,6 +1,6 @@
 # SRT205-Project
 
-This project includes three 4 ansible roles used to apply CIS Benchmark security hardening on multiple operating systems and to audit them. They are as follows: **audit_compliance**, **cis_amazon**, and **cis_ubuntu** **cis_windows**.
+This project includes 4 ansible roles used to apply CIS Benchmark security hardening on multiple operating systems and to audit them. They are as follows: **audit_compliance**, **cis_amazon**, and **cis_ubuntu** **cis_windows**.
 
 Each role automates at least 10 security configurations based on the official CIS benchmarks. The audit_compliance role audits the configurations and produces templates in the Reports folder using jinja 2
 
